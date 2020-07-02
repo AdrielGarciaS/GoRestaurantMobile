@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Image, ScrollView } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Feather';
@@ -59,13 +59,20 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
-      api.get<Food[]>('foods').then(response => {
-        const data = response.data.map(food => ({
-          ...food,
-          formattedPrice: formatValue(food.price),
-        }));
-        setFoods(data);
-      });
+      api
+        .get<Food[]>('foods', {
+          params: {
+            name_like: searchValue,
+            category_like: selectedCategory,
+          },
+        })
+        .then(response => {
+          const data = response.data.map(food => ({
+            ...food,
+            formattedPrice: formatValue(food.price),
+          }));
+          setFoods(data);
+        });
     }
 
     loadFoods();
@@ -82,7 +89,12 @@ const Dashboard: React.FC = () => {
   }, []);
 
   function handleSelectCategory(id: number): void {
-    // Select / deselect category
+    if (selectedCategory === id) {
+      setSelectedCategory(undefined);
+      return;
+    }
+
+    setSelectedCategory(id);
   }
 
   return (

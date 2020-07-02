@@ -61,6 +61,10 @@ interface Food {
   extras: Extra[];
 }
 
+interface FavoriteFood {
+  id: number;
+}
+
 const FoodDetails: React.FC = () => {
   const [food, setFood] = useState({} as Food);
   const [extras, setExtras] = useState<Extra[]>([]);
@@ -129,9 +133,20 @@ const FoodDetails: React.FC = () => {
     });
   }
 
-  const toggleFavorite = useCallback(() => {
+  const toggleFavorite = useCallback(async () => {
+    if (isFavorite) {
+      await api.delete(`favorites/${routeParams.id}`);
+    } else {
+      const foodData = food;
+
+      delete foodData.extras;
+      delete foodData.formattedPrice;
+
+      await api.post('favorites', foodData);
+    }
+
     setIsFavorite(state => !state);
-  }, []);
+  }, [food, isFavorite, routeParams.id]);
 
   const cartTotal = useMemo(() => {
     const totalExtra = extras.reduce((acc, extra) => {
